@@ -1,0 +1,947 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+        }
+        
+        .card {
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #4f46e5;
+        }
+        
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #4f46e5;
+        }
+        
+        .modal {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        
+        .modal-enter {
+            opacity: 0;
+            transform: scale(0.9);
+        }
+        
+        .modal-enter-active {
+            opacity: 1;
+            transform: scale(1);
+        }
+        
+        .modal-exit {
+            opacity: 1;
+            transform: scale(1);
+        }
+        
+        .modal-exit-active {
+            opacity: 0;
+            transform: scale(0.9);
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .slide-in {
+            animation: slideIn 0.5s ease-in-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        .bounce {
+            animation: bounce 0.5s ease-in-out;
+        }
+        
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+        
+        .shake {
+            animation: shake 0.5s ease-in-out;
+        }
+        
+        @keyframes shake {
+            0%, 100% {
+                transform: translateX(0);
+            }
+            10%, 30%, 50%, 70%, 90% {
+                transform: translateX(-5px);
+            }
+            20%, 40%, 60%, 80% {
+                transform: translateX(5px);
+            }
+        }
+        
+        .pulse {
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(79, 70, 229, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(79, 70, 229, 0);
+            }
+        }
+        
+        .rotate-in {
+            animation: rotateIn 0.5s ease-in-out;
+        }
+        
+        @keyframes rotateIn {
+            from {
+                opacity: 0;
+                transform: rotate(-90deg);
+            }
+            to {
+                opacity: 1;
+                transform: rotate(0);
+            }
+        }
+        
+        .table-row {
+            transition: all 0.3s ease;
+        }
+        
+        .table-row:hover {
+            background-color: #f0f4ff;
+            transform: scale(1.01);
+        }
+        
+        .btn-effect {
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-effect:after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.3s ease, height 0.3s ease;
+        }
+        
+        .btn-effect:hover:after {
+            width: 200%;
+            height: 200%;
+        }
+        
+        .btn-effect:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div id="app" class="container mx-auto px-4 py-8">
+        <!-- Header with Mode Toggle -->
+        <header class="flex justify-between items-center mb-8 bg-white rounded-xl p-6 shadow-md slide-in">
+            <div>
+                <h1 class="text-3xl font-bold text-indigo-700">Portfolio Dashboard</h1>
+                <p class="text-gray-600" id="mode-description">Manage your portfolio items</p>
+            </div>
+            
+            <div class="flex items-center space-x-4">
+                <span id="mode-label" class="text-gray-700 font-medium">User Mode</span>
+                <div class="relative inline-block w-16 align-middle select-none">
+                    <input type="checkbox" id="mode-toggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 border-gray-300 appearance-none cursor-pointer transition-all duration-300 ease-in-out" />
+                    <label for="mode-toggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer transition-all duration-300 ease-in-out"></label>
+                </div>
+                <span id="admin-label" class="text-gray-400 font-medium">Admin Mode</span>
+            </div>
+        </header>
+        
+        <!-- Admin Controls (Hidden in User Mode) -->
+        <div id="admin-controls" class="mb-6 hidden">
+            <div class="bg-white rounded-xl p-6 shadow-md fade-in">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-semibold text-indigo-700">Portfolio Management</h2>
+                    <button id="add-item-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 btn-effect">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                        </svg>
+                        <span>Add New Project</span>
+                    </button>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="col-span-1">
+                        <label class="block text-gray-700 mb-2">Filter by Category</label>
+                        <select id="category-filter" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                            <option value="all">All Categories</option>
+                            <option value="web">Web Development</option>
+                            <option value="mobile">Mobile App</option>
+                            <option value="design">UI/UX Design</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-span-1">
+                        <label class="block text-gray-700 mb-2">Sort by</label>
+                        <select id="sort-by" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                            <option value="newest">Newest First</option>
+                            <option value="oldest">Oldest First</option>
+                            <option value="name">Name (A-Z)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-span-1">
+                        <label class="block text-gray-700 mb-2">Search</label>
+                        <input type="text" id="search-input" placeholder="Search projects..." class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- View Toggle -->
+        <div class="flex justify-end mb-6 fade-in">
+            <div class="bg-white rounded-lg shadow-md inline-flex p-1">
+                <button id="grid-view-btn" class="px-4 py-2 rounded-md bg-indigo-600 text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                    </svg>
+                </button>
+                <button id="table-view-btn" class="px-4 py-2 rounded-md text-gray-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Grid View (Default) -->
+        <div id="grid-view" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Grid items will be dynamically inserted here -->
+        </div>
+        
+        <!-- Table View (Hidden by Default) -->
+        <div id="table-view" class="bg-white rounded-xl shadow-md overflow-hidden hidden">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Project</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200" id="table-body">
+                    <!-- Table rows will be dynamically inserted here -->
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Add/Edit Modal -->
+        <div id="project-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+            <div class="bg-white rounded-xl shadow-xl p-6 w-full max-w-2xl mx-4 modal modal-enter">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 id="modal-title" class="text-2xl font-bold text-indigo-700">Add New Project</h2>
+                    <button id="close-modal" class="text-gray-500 hover:text-gray-700">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                
+                <form id="project-form" class="space-y-4">
+                    <input type="hidden" id="project-id">
+                    
+                    <div>
+                        <label for="project-name" class="block text-gray-700 mb-2">Project Name</label>
+                        <input type="text" id="project-name" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" required>
+                    </div>
+                    
+                    <div>
+                        <label for="project-category" class="block text-gray-700 mb-2">Category</label>
+                        <select id="project-category" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" required>
+                            <option value="web">Web Development</option>
+                            <option value="mobile">Mobile App</option>
+                            <option value="design">UI/UX Design</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="project-description" class="block text-gray-700 mb-2">Description</label>
+                        <textarea id="project-description" rows="4" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" required></textarea>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="project-date" class="block text-gray-700 mb-2">Date</label>
+                            <input type="date" id="project-date" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" required>
+                        </div>
+                        
+                        <div>
+                            <label for="project-status" class="block text-gray-700 mb-2">Status</label>
+                            <select id="project-status" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" required>
+                                <option value="completed">Completed</option>
+                                <option value="in-progress">In Progress</option>
+                                <option value="planned">Planned</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="project-color" class="block text-gray-700 mb-2">Project Color</label>
+                        <input type="color" id="project-color" class="w-full h-10 p-1 border border-gray-300 rounded-lg" value="#4f46e5">
+                    </div>
+                    
+                    <div class="flex justify-end space-x-3 pt-4">
+                        <button type="button" id="cancel-btn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 btn-effect">Cancel</button>
+                        <button type="submit" id="save-btn" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 btn-effect">Save Project</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Delete Confirmation Modal -->
+        <div id="delete-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+            <div class="bg-white rounded-xl shadow-xl p-6 w-full max-w-md mx-4 modal modal-enter">
+                <div class="text-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-red-500 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">Delete Project</h2>
+                    <p class="text-gray-600 mb-6">Are you sure you want to delete this project? This action cannot be undone.</p>
+                    
+                    <div class="flex justify-center space-x-4">
+                        <button id="cancel-delete" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 btn-effect">Cancel</button>
+                        <button id="confirm-delete" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 btn-effect">Delete</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Success Toast Notification -->
+        <div id="toast" class="fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg hidden flex items-center space-x-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            <span id="toast-message">Project saved successfully!</span>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Sample data
+            let projects = [
+                {
+                    id: 1,
+                    name: "E-commerce Website",
+                    category: "web",
+                    description: "A fully responsive e-commerce platform with payment integration and admin dashboard.",
+                    date: "2023-05-15",
+                    status: "completed",
+                    color: "#4f46e5"
+                },
+                {
+                    id: 2,
+                    name: "Fitness Tracker App",
+                    category: "mobile",
+                    description: "Mobile application for tracking workouts, nutrition, and health metrics.",
+                    date: "2023-07-22",
+                    status: "in-progress",
+                    color: "#10b981"
+                },
+                {
+                    id: 3,
+                    name: "Banking Dashboard",
+                    category: "design",
+                    description: "UI/UX design for a banking application dashboard with focus on accessibility.",
+                    date: "2023-09-10",
+                    status: "planned",
+                    color: "#f59e0b"
+                },
+                {
+                    id: 4,
+                    name: "Social Media Platform",
+                    category: "web",
+                    description: "A social networking platform with real-time messaging and content sharing.",
+                    date: "2023-04-05",
+                    status: "completed",
+                    color: "#ec4899"
+                },
+                {
+                    id: 5,
+                    name: "Restaurant Ordering System",
+                    category: "mobile",
+                    description: "Mobile app for restaurant menu browsing and food ordering with payment processing.",
+                    date: "2023-08-18",
+                    status: "in-progress",
+                    color: "#8b5cf6"
+                }
+            ];
+            
+            // DOM Elements
+            const modeToggle = document.getElementById('mode-toggle');
+            const modeLabel = document.getElementById('mode-label');
+            const adminLabel = document.getElementById('admin-label');
+            const modeDescription = document.getElementById('mode-description');
+            const adminControls = document.getElementById('admin-controls');
+            const gridViewBtn = document.getElementById('grid-view-btn');
+            const tableViewBtn = document.getElementById('table-view-btn');
+            const gridView = document.getElementById('grid-view');
+            const tableView = document.getElementById('table-view');
+            const tableBody = document.getElementById('table-body');
+            const addItemBtn = document.getElementById('add-item-btn');
+            const projectModal = document.getElementById('project-modal');
+            const closeModal = document.getElementById('close-modal');
+            const cancelBtn = document.getElementById('cancel-btn');
+            const projectForm = document.getElementById('project-form');
+            const modalTitle = document.getElementById('modal-title');
+            const projectIdInput = document.getElementById('project-id');
+            const projectNameInput = document.getElementById('project-name');
+            const projectCategoryInput = document.getElementById('project-category');
+            const projectDescriptionInput = document.getElementById('project-description');
+            const projectDateInput = document.getElementById('project-date');
+            const projectStatusInput = document.getElementById('project-status');
+            const projectColorInput = document.getElementById('project-color');
+            const deleteModal = document.getElementById('delete-modal');
+            const cancelDelete = document.getElementById('cancel-delete');
+            const confirmDelete = document.getElementById('confirm-delete');
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+            const categoryFilter = document.getElementById('category-filter');
+            const sortBy = document.getElementById('sort-by');
+            const searchInput = document.getElementById('search-input');
+            
+            let currentProjectId = null;
+            let isAdminMode = false;
+            let currentView = 'grid';
+            
+            // Initialize
+            renderProjects();
+            
+            // Mode Toggle
+            modeToggle.addEventListener('change', function() {
+                isAdminMode = this.checked;
+                
+                if (isAdminMode) {
+                    modeLabel.classList.remove('text-gray-700');
+                    modeLabel.classList.add('text-gray-400');
+                    adminLabel.classList.remove('text-gray-400');
+                    adminLabel.classList.add('text-gray-700');
+                    modeDescription.textContent = 'Manage and edit your portfolio items';
+                    adminControls.classList.remove('hidden');
+                    adminControls.classList.add('fade-in');
+                } else {
+                    modeLabel.classList.remove('text-gray-400');
+                    modeLabel.classList.add('text-gray-700');
+                    adminLabel.classList.remove('text-gray-700');
+                    adminLabel.classList.add('text-gray-400');
+                    modeDescription.textContent = 'View your portfolio items';
+                    adminControls.classList.add('hidden');
+                }
+                
+                renderProjects();
+            });
+            
+            // View Toggle
+            gridViewBtn.addEventListener('click', function() {
+                if (currentView !== 'grid') {
+                    currentView = 'grid';
+                    gridViewBtn.classList.add('bg-indigo-600', 'text-white');
+                    gridViewBtn.classList.remove('text-gray-600');
+                    tableViewBtn.classList.remove('bg-indigo-600', 'text-white');
+                    tableViewBtn.classList.add('text-gray-600');
+                    gridView.classList.remove('hidden');
+                    tableView.classList.add('hidden');
+                    renderProjects();
+                }
+            });
+            
+            tableViewBtn.addEventListener('click', function() {
+                if (currentView !== 'table') {
+                    currentView = 'table';
+                    tableViewBtn.classList.add('bg-indigo-600', 'text-white');
+                    tableViewBtn.classList.remove('text-gray-600');
+                    gridViewBtn.classList.remove('bg-indigo-600', 'text-white');
+                    gridViewBtn.classList.add('text-gray-600');
+                    tableView.classList.remove('hidden');
+                    gridView.classList.add('hidden');
+                    renderProjects();
+                }
+            });
+            
+            // Add New Project
+            addItemBtn.addEventListener('click', function() {
+                openModal();
+            });
+            
+            // Close Modal
+            closeModal.addEventListener('click', closeProjectModal);
+            cancelBtn.addEventListener('click', closeProjectModal);
+            
+            // Form Submit
+            projectForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                saveProject();
+            });
+            
+            // Delete Modal
+            cancelDelete.addEventListener('click', function() {
+                closeDeleteModal();
+            });
+            
+            confirmDelete.addEventListener('click', function() {
+                deleteProject(currentProjectId);
+                closeDeleteModal();
+                showToast('Project deleted successfully!');
+            });
+            
+            // Filter and Search
+            categoryFilter.addEventListener('change', renderProjects);
+            sortBy.addEventListener('change', renderProjects);
+            searchInput.addEventListener('input', renderProjects);
+            
+            // Functions
+            function renderProjects() {
+                const filteredProjects = filterProjects();
+                
+                if (currentView === 'grid') {
+                    renderGridView(filteredProjects);
+                } else {
+                    renderTableView(filteredProjects);
+                }
+            }
+            
+            function filterProjects() {
+                let filtered = [...projects];
+                
+                // Category filter
+                if (categoryFilter && categoryFilter.value !== 'all') {
+                    filtered = filtered.filter(project => project.category === categoryFilter.value);
+                }
+                
+                // Search
+                if (searchInput && searchInput.value) {
+                    const searchTerm = searchInput.value.toLowerCase();
+                    filtered = filtered.filter(project => 
+                        project.name.toLowerCase().includes(searchTerm) || 
+                        project.description.toLowerCase().includes(searchTerm)
+                    );
+                }
+                
+                // Sort
+                if (sortBy) {
+                    switch (sortBy.value) {
+                        case 'newest':
+                            filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+                            break;
+                        case 'oldest':
+                            filtered.sort((a, b) => new Date(a.date) - new Date(b.date));
+                            break;
+                        case 'name':
+                            filtered.sort((a, b) => a.name.localeCompare(b.name));
+                            break;
+                    }
+                }
+                
+                return filtered;
+            }
+            
+            function renderGridView(projects) {
+                gridView.innerHTML = '';
+                
+                if (projects.length === 0) {
+                    gridView.innerHTML = `
+                        <div class="col-span-full text-center py-12">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-400 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <h3 class="text-lg font-medium text-gray-700">No projects found</h3>
+                            <p class="text-gray-500">Try changing your filters or add a new project</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                projects.forEach((project, index) => {
+                    const card = document.createElement('div');
+                    card.className = `card bg-white rounded-xl shadow-md overflow-hidden fade-in`;
+                    card.style.animationDelay = `${index * 0.1}s`;
+                    
+                    const statusClass = getStatusClass(project.status);
+                    const formattedDate = formatDate(project.date);
+                    
+                    card.innerHTML = `
+                        <div class="h-2" style="background-color: ${project.color}"></div>
+                        <div class="p-6">
+                            <div class="flex justify-between items-start">
+                                <h3 class="text-xl font-semibold text-gray-800 mb-2">${project.name}</h3>
+                                <span class="px-3 py-1 text-xs font-medium rounded-full ${statusClass}">${formatStatus(project.status)}</span>
+                            </div>
+                            <div class="text-sm text-gray-500 mb-2">${getCategoryIcon(project.category)} ${formatCategory(project.category)}</div>
+                            <p class="text-gray-600 mb-4">${project.description}</p>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-500">${formattedDate}</span>
+                                ${isAdminMode ? `
+                                <div class="flex space-x-2">
+                                    <button class="edit-btn p-2 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-full transition-all" data-id="${project.id}">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                                        </svg>
+                                    </button>
+                                    <button class="delete-btn p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-full transition-all" data-id="${project.id}">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+                                </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `;
+                    
+                    gridView.appendChild(card);
+                });
+                
+                // Add event listeners to edit and delete buttons
+                if (isAdminMode) {
+                    document.querySelectorAll('.edit-btn').forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            const projectId = parseInt(this.getAttribute('data-id'));
+                            editProject(projectId);
+                        });
+                    });
+                    
+                    document.querySelectorAll('.delete-btn').forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            const projectId = parseInt(this.getAttribute('data-id'));
+                            openDeleteModal(projectId);
+                        });
+                    });
+                }
+            }
+            
+            function renderTableView(projects) {
+                tableBody.innerHTML = '';
+                
+                if (projects.length === 0) {
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="5" class="px-6 py-12 text-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-400 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <h3 class="text-lg font-medium text-gray-700">No projects found</h3>
+                                <p class="text-gray-500">Try changing your filters or add a new project</p>
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+                
+                projects.forEach((project, index) => {
+                    const row = document.createElement('tr');
+                    row.className = 'table-row';
+                    row.style.animationDelay = `${index * 0.05}s`;
+                    
+                    const statusClass = getStatusClass(project.status);
+                    const formattedDate = formatDate(project.date);
+                    
+                    row.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="h-10 w-1 rounded-full mr-3" style="background-color: ${project.color}"></div>
+                                <div>
+                                    <div class="text-sm font-medium text-gray-900">${project.name}</div>
+                                    <div class="text-sm text-gray-500 truncate max-w-xs">${project.description.substring(0, 60)}${project.description.length > 60 ? '...' : ''}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-900 flex items-center">
+                                ${getCategoryIcon(project.category)} ${formatCategory(project.category)}
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-900">${formattedDate}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-3 py-1 text-xs font-medium rounded-full ${statusClass}">${formatStatus(project.status)}</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            ${isAdminMode ? `
+                            <button class="edit-btn text-indigo-600 hover:text-indigo-800 mr-3" data-id="${project.id}">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                                </svg>
+                            </button>
+                            <button class="delete-btn text-red-600 hover:text-red-800" data-id="${project.id}">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                            ` : ''}
+                        </td>
+                    `;
+                    
+                    tableBody.appendChild(row);
+                });
+                
+                // Add event listeners to edit and delete buttons
+                if (isAdminMode) {
+                    document.querySelectorAll('.edit-btn').forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            const projectId = parseInt(this.getAttribute('data-id'));
+                            editProject(projectId);
+                        });
+                    });
+                    
+                    document.querySelectorAll('.delete-btn').forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            const projectId = parseInt(this.getAttribute('data-id'));
+                            openDeleteModal(projectId);
+                        });
+                    });
+                }
+            }
+            
+            function openModal(project = null) {
+                modalTitle.textContent = project ? 'Edit Project' : 'Add New Project';
+                
+                if (project) {
+                    projectIdInput.value = project.id;
+                    projectNameInput.value = project.name;
+                    projectCategoryInput.value = project.category;
+                    projectDescriptionInput.value = project.description;
+                    projectDateInput.value = project.date;
+                    projectStatusInput.value = project.status;
+                    projectColorInput.value = project.color;
+                } else {
+                    projectForm.reset();
+                    projectIdInput.value = '';
+                    projectColorInput.value = '#4f46e5';
+                    
+                    // Set today's date as default
+                    const today = new Date();
+                    const year = today.getFullYear();
+                    const month = String(today.getMonth() + 1).padStart(2, '0');
+                    const day = String(today.getDate()).padStart(2, '0');
+                    projectDateInput.value = `${year}-${month}-${day}`;
+                }
+                
+                projectModal.classList.remove('hidden');
+                setTimeout(() => {
+                    const modalContent = projectModal.querySelector('.modal');
+                    modalContent.classList.remove('modal-enter');
+                    modalContent.classList.add('modal-enter-active');
+                }, 10);
+            }
+            
+            function closeProjectModal() {
+                const modalContent = projectModal.querySelector('.modal');
+                modalContent.classList.remove('modal-enter-active');
+                modalContent.classList.add('modal-exit');
+                
+                setTimeout(() => {
+                    modalContent.classList.remove('modal-exit');
+                    modalContent.classList.add('modal-enter');
+                    projectModal.classList.add('hidden');
+                }, 300);
+            }
+            
+            function saveProject() {
+                const id = projectIdInput.value ? parseInt(projectIdInput.value) : Date.now();
+                const project = {
+                    id: id,
+                    name: projectNameInput.value,
+                    category: projectCategoryInput.value,
+                    description: projectDescriptionInput.value,
+                    date: projectDateInput.value,
+                    status: projectStatusInput.value,
+                    color: projectColorInput.value
+                };
+                
+                if (projectIdInput.value) {
+                    // Update existing project
+                    const index = projects.findIndex(p => p.id === parseInt(projectIdInput.value));
+                    if (index !== -1) {
+                        projects[index] = project;
+                    }
+                } else {
+                    // Add new project
+                    projects.push(project);
+                }
+                
+                closeProjectModal();
+                renderProjects();
+                showToast('Project saved successfully!');
+            }
+            
+            function editProject(projectId) {
+                const project = projects.find(p => p.id === projectId);
+                if (project) {
+                    openModal(project);
+                }
+            }
+            
+            function openDeleteModal(projectId) {
+                currentProjectId = projectId;
+                deleteModal.classList.remove('hidden');
+                setTimeout(() => {
+                    const modalContent = deleteModal.querySelector('.modal');
+                    modalContent.classList.remove('modal-enter');
+                    modalContent.classList.add('modal-enter-active');
+                }, 10);
+            }
+            
+            function closeDeleteModal() {
+                const modalContent = deleteModal.querySelector('.modal');
+                modalContent.classList.remove('modal-enter-active');
+                modalContent.classList.add('modal-exit');
+                
+                setTimeout(() => {
+                    modalContent.classList.remove('modal-exit');
+                    modalContent.classList.add('modal-enter');
+                    deleteModal.classList.add('hidden');
+                }, 300);
+            }
+            
+            function deleteProject(projectId) {
+                const index = projects.findIndex(p => p.id === projectId);
+                if (index !== -1) {
+                    projects.splice(index, 1);
+                    renderProjects();
+                }
+            }
+            
+            function showToast(message) {
+                toastMessage.textContent = message;
+                toast.classList.remove('hidden');
+                toast.classList.add('bounce');
+                
+                setTimeout(() => {
+                    toast.classList.remove('bounce');
+                    toast.classList.add('fade-out');
+                    
+                    setTimeout(() => {
+                        toast.classList.add('hidden');
+                        toast.classList.remove('fade-out');
+                    }, 300);
+                }, 3000);
+            }
+            
+            function getStatusClass(status) {
+                switch (status) {
+                    case 'completed':
+                        return 'bg-green-100 text-green-800';
+                    case 'in-progress':
+                        return 'bg-blue-100 text-blue-800';
+                    case 'planned':
+                        return 'bg-yellow-100 text-yellow-800';
+                    default:
+                        return 'bg-gray-100 text-gray-800';
+                }
+            }
+            
+            function formatStatus(status) {
+                switch (status) {
+                    case 'completed':
+                        return 'Completed';
+                    case 'in-progress':
+                        return 'In Progress';
+                    case 'planned':
+                        return 'Planned';
+                    default:
+                        return status;
+                }
+            }
+            
+            function formatCategory(category) {
+                switch (category) {
+                    case 'web':
+                        return 'Web Development';
+                    case 'mobile':
+                        return 'Mobile App';
+                    case 'design':
+                        return 'UI/UX Design';
+                    default:
+                        return category;
+                }
+            }
+            
+            function getCategoryIcon(category) {
+                switch (category) {
+                    case 'web':
+                        return `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1 text-indigo-600" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M4.083 9h1.946c.089-1.546.383-2.97.837-4.118A6.004 6.004 0 004.083 9zM10 2a8 8 0 100 16 8 8 0 000-16zm0 2c-.076 0-.232.032-.465.262-.238.234-.497.623-.737 1.182-.389.907-.673 2.142-.766 3.556h3.936c-.093-1.414-.377-2.649-.766-3.556-.24-.56-.5-.948-.737-1.182C10.232 4.032 10.076 4 10 4zm3.971 5c-.089-1.546-.383-2.97-.837-4.118A6.004 6.004 0 0115.917 9h-1.946zm-2.003 2H8.032c.093 1.414.377 2.649.766 3.556.24.56.5.948.737 1.182.233.23.389.262.465.262.076 0 .232-.032.465-.262.238-.234.498-.623.737-1.182.389-.907.673-2.142.766-3.556zm1.166 4.118c.454-1.147.748-2.572.837-4.118h1.946a6.004 6.004 0 01-2.783 4.118zm-6.268 0C6.412 13.97 6.118 12.546 6.03 11H4.083a6.004 6.004 0 002.783 4.118z" clip-rule="evenodd" />
+                        </svg>`;
+                    case 'mobile':
+                        return `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1 text-green-600" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M7 2a2 2 0 00-2 2v12a2 2 0 002 2h6a2 2 0 002-2V4a2 2 0 00-2-2H7zm3 14a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                        </svg>`;
+                    case 'design':
+                        return `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1 text-yellow-600" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" />
+                            <path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" />
+                        </svg>`;
+                    default:
+                        return '';
+                }
+            }
+            
+            function formatDate(dateString) {
+                const options = { year: 'numeric', month: 'short', day: 'numeric' };
+                return new Date(dateString).toLocaleDateString(undefined, options);
+            }
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'944ba9ef23ddfdf3',t:'MTc0ODA3Nzg2Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
